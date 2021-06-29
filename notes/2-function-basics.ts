@@ -3,22 +3,31 @@ import { HasEmail, HasPhoneNumber } from "./1-basics";
 //== FUNCTIONS ==//
 
 // (1) function arguments and return values can have type annotations
-// function sendEmail(to: HasEmail): { recipient: string; body: string } {
-//   return {
-//     recipient: `${to.name} <${to.email}>`, // Mike <mike@example.com>
-//     body: "You're pre-qualified for a loan!"
-//   };
-// }
+function sendEmail(to: HasEmail): { recipient: string; body: string } {
+  return {
+    recipient: `${to.name} <${to.email}>`, // Mike <mike@example.com>
+    body: "You're pre-qualified for a loan!"
+  };
+}
 
 // (2) or the arrow-function variant
-// const sendTextMessage = (
-//   to: HasPhoneNumber
-// ): { recipient: string; body: string } => {
-//   return {
-//     recipient: `${to.name} <${to.phone}>`,
-//     body: "You're pre-qualified for a loan!"
-//   };
-// };
+const sendTextMessage = (
+  to: HasPhoneNumber
+): { recipient: string; body: string } => {
+  return {
+    recipient: `${to.name} <${to.phone}>`,
+    body: "You're pre-qualified for a loan!"
+  };
+};
+
+const sendEmailMessage = (
+  to: HasEmail
+): { recipient: string; body: string } => {
+  return {
+    recipient: `${to.name} <${to.email}>`,
+    body: "You're pre-qualified for a load!"
+  }
+}
 
 // (3) return types can almost always be inferred
 // function getNameParts(contact: { name: string }) {
@@ -41,58 +50,61 @@ import { HasEmail, HasPhoneNumber } from "./1-basics";
 // const sum = (...vals: number[]) => vals.reduce((sum, x) => sum + x, 0);
 // console.log(sum(3, 4, 6)); // 13
 
+const sum = (...vals: number[]) => vals.reduce((sum, x) => sum + x, 0);
+
 // (5) we can even provide multiple function signatures
-// "overload signatures"
-// function contactPeople(method: "email", ...people: HasEmail[]): void;
-// function contactPeople(method: "phone", ...people: HasPhoneNumber[]): void;
+// "overload signatures" example. To avoid certain pattern that we want to avoid #ankify
+// this functions not only for documentation, it actually has type checking ramifications. it forbids you to do certain things. This is similar to languages that has pattern matching like Scala.
+function contactPeople(method: "email", ...people: HasEmail[]): void;
+function contactPeople(method: "phone", ...people: HasPhoneNumber[]): void;
 
 // "function implementation"
-// function contactPeople(
-//   method: "email" | "phone",
-//   ...people: (HasEmail | HasPhoneNumber)[]
-// ): void {
-//   if (method === "email") {
-//     (people as HasEmail[]).forEach(sendEmail);
-//   } else {
-//     (people as HasPhoneNumber[]).forEach(sendTextMessage);
-//   }
-// }
+function contactPeople(
+  method: "email" | "phone",
+  ...people: (HasEmail | HasPhoneNumber)[]
+): void {
+  if (method === "email") {
+    (people as HasEmail[]).forEach(sendEmail);
+  } else {
+    (people as HasPhoneNumber[]).forEach(sendTextMessage);
+  }
+}
 
 // ✅ email works
-// contactPeople("email", { name: "foo", email: "" });
+contactPeople("email", { name: "foo", email: "" });
 
 // ✅ phone works
-// contactPeople("phone", { name: "foo", phone: 12345678 });
+contactPeople("phone", { name: "foo", phone: 12345678 });
 
 // 🚨 mixing does not work
-// contactPeople("email", { name: "foo", phone: 12345678 });
+// contactPeople("email", { n ame: "foo", phone: 12345678 });
 
-// (6) the lexical scope (this) of a function is part of its signature
+// (6) the lexical scope (this) of a function is part of its signature #ankify
+// lexical scope basically what is the value of "this" that you are invoking in this function. Typescript allows you to control functions to only execute with the correct lexical scope.
+function sendMessage(
+  this: HasEmail & HasPhoneNumber,
+  preferredMethod: "phone" | "email"
+) {
+  if (preferredMethod === "email") {
+    console.log("sendEmail");
+    sendEmail(this);
+  } else {
+    console.log("sendTextMessage");
+    sendTextMessage(this);
+  }
+}
+const c = { name: "Mike", phone: 3215551212, email: "mike@example.com" };
 
-// function sendMessage(
-//   this: HasEmail & HasPhoneNumber,
-//   preferredMethod: "phone" | "email"
-// ) {
-//   if (preferredMethod === "email") {
-//     console.log("sendEmail");
-//     sendEmail(this);
-//   } else {
-//     console.log("sendTextMessage");
-//     sendTextMessage(this);
-//   }
-// }
-// const c = { name: "Mike", phone: 3215551212, email: "mike@example.com" };
-
-// function invokeSoon(cb: () => any, timeout: number) {
-//   setTimeout(() => cb.call(null), timeout);
-// }
+function invokeSoon(cb: () => any, timeout: number) {
+  setTimeout(() => cb.call(null), timeout);
+}
 
 // 🚨 this is not satisfied
 // invokeSoon(() => sendMessage("email"), 500);
 
 // ✅ creating a bound function is one solution
-// const bound = sendMessage.bind(c, "email");
-// invokeSoon(() => bound(), 500);
+const bound = sendMessage.bind(c, "email");
+invokeSoon(() => bound(), 500);
 
 // ✅ call/apply works as well
 // invokeSoon(() => sendMessage.apply(c, ["phone"]), 500);
