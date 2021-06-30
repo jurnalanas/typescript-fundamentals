@@ -21,6 +21,8 @@ import { HasPhoneNumber, HasEmail } from "./1-basics";
  * -   Typescript has a shortcut: PARAMETER PROPERTIES
  */
 
+
+
 /**
  * (3) Access modifier keywords - "who can access this thing"
  *
@@ -28,12 +30,12 @@ import { HasPhoneNumber, HasEmail } from "./1-basics";
  * - protected - me and subclasses
  * - private - only me
  */
-
-// class ParamPropContact implements HasEmail {
-//   constructor(public name: string, public email: string = "no email") {
-//     // nothing needed
-//   }
-// }
+// tip: use https://www.typescriptlang.org/play to play around
+class ParamPropContact implements HasEmail {
+  constructor(public name: string, public email: string = "no email") {
+    // nothing needed
+  }
+}
 
 /**
  * (4) Class fields can have initializers (defaults)
@@ -50,6 +52,7 @@ import { HasPhoneNumber, HasEmail } from "./1-basics";
 /**
  * (5) TypeScript even allows for abstract classes, which have a partial implementation
  */
+// not gonna use this often probably
 
 // abstract class AbstractContact implements HasEmail, HasPhoneNumber {
 //   public abstract phone: number; // must be implemented by non-abstract subclasses
